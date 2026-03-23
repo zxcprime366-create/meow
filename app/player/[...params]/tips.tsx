@@ -1,23 +1,20 @@
 import { useEffect, useState } from "react";
 
 const tips = [
-  "Tip: Stuck on loading? Try switching the server.",
-  "Please wait… fetching resources, almost there!",
-  "One moment please… good things take time!",
-  "Did you know? Refreshing the page can work wonders ✨",
-  "Tip: Make sure your internet is stable for the best experience!",
-  "Tip: Use ↑ ↓ arrow keys or swipe to navigate servers, press Enter to select.",
-  "Tip: 4K movies too dim? Adjust brightness in Settings ☀️",
-  "Dive into endless free streaming at zxcstream.icu",
-  "Tip: Press Space or K to play/pause anytime.",
-  "Tip: Press F to toggle fullscreen.",
-  "Tip: Press M to mute/unmute.",
-  "Tip: Arrow keys ← → skip backward/forward 15 seconds.",
-  "Tip: Try Dual Subtitles to learn a new language while watching",
-  "Tip: Use Sleep Timer in Settings to auto-pause after a set time 😴",
-  "Tip: Adjust playback speed in Settings for faster or slower viewing.",
+  "Tip: Switch server if loading gets stuck.",
+  "Tip: Check your internet connection.",
+  "Tip: Use ↑ ↓ to change servers.",
+  "Tip: Press Enter to select.",
+  "Tip: Adjust brightness in Settings",
+  "Free streaming at zxcstream.icu",
+  "Tip: Press Space or K to play/pause.",
+  "Tip: Press F for fullscreen.",
+  "Tip: Press M to mute.",
+  "Tip: ← → skip 15s.",
+  "Tip: Try dual subtitles.",
+  "Tip: Use sleep timer 😴",
+  "Tip: Change playback speed.",
 ];
-
 export default function DynamicTip() {
   const [currentTipIndex, setCurrentTipIndex] = useState(() =>
     Math.floor(Math.random() * tips.length),

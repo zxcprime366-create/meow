@@ -191,10 +191,10 @@ export function LyricsServerPicker({
                 <p>{isPlaying ? "connected" : statusLabel[s.status]}</p>
 
                 {isPlaying ? (
-                  <Cast className="w-4 h-4" />
+                  <Cast className="size-4  max-[340px]:size-2.5" />
                 ) : (
                   <Icon
-                    className={`w-4 h-4 ${
+                    className={`size-4    max-[340px]:size-2.5 ${
                       s.status === "checking" || s.status === "connecting"
                         ? "animate-spin"
                         : ""

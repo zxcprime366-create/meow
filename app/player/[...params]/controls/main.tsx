@@ -19,6 +19,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import Episodes from "../episodes";
 import { useRouter } from "next/navigation";
 import { QualityTrack } from "@/hooks/source";
+import { Cloud } from "lucide-react";
+import { CloudIcon } from "@/components/icons/cloud";
 export interface VideoControlsProps {
   state: VideoPlayerState;
   controls: VideoPlayerControls;
@@ -132,9 +134,12 @@ export default function MainControls({
           </div>
         </div> */}
         <div></div>
+        {/* <button className="text-white/80 hover:text-white cursor-pointer">
+          <CloudIcon className="lg:size-13 md:size-9 size-8  max-[340px]:size-5.5" />
+        </button> */}
       </div>
-      <div className="w-full lg:px-6 px-2   max-[340px]:px-1  lg:py-6 py-3  max-[340px]:py-1.5  space-y-3  max-[340px]:space-y-1  max-[340px]:-translate-x-2">
-        <div className="lg:p-4 p-2  pointer-events-none">
+      <div className="w-full lg:px-6 px-2   max-[340px]:px-1 lg:py-6 py-3  max-[340px]:py-1.5  space-y-3  max-[340px]:space-y-1  ">
+        <div className="lg:p-4 p-2  max-[340px]:p-1  pointer-events-none">
           <span className="flex lg:gap-3 gap-1.5  max-[340px]:gap-1 items-center">
             <div
               className="lg:w-1 w-0.5  lg:h-5 h-3  max-[340px]:h-2 rounded-full"
@@ -152,7 +157,7 @@ export default function MainControls({
           </div>
         </div>
         <div className="space-y-3  max-[340px]:space-y-1 pointer-events-auto ">
-          <div className="group  lg:h-4 h-2  max-[340px]:h-1 lg:px-3 px-2 flex justify-center items-center ">
+          <div className="group  lg:h-4 h-2  max-[340px]:h-1 lg:px-3 px-2  max-[340px]:px-1 flex justify-center items-center ">
             <div
               className="relative w-full"
               ref={sliderRef}
@@ -194,7 +199,7 @@ export default function MainControls({
               />
             </div>
           </div>
-          <div className="flex justify-between items-center w-full  max-[340px]:px-1">
+          <div className="flex justify-between items-center w-full  ">
             <div className="flex items-center lg:gap-3 gap-2  max-[340px]:gap-1.5">
               <button
                 onClick={controls.togglePlay}

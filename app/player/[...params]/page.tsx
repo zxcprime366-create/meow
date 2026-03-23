@@ -19,6 +19,8 @@ import Pause from "./pause";
 import DynamicTip from "./tips";
 import { useOpenSubtitle } from "@/hooks/open-subtitle";
 import { makeKey } from "@/zustand/videoProgressStore";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 export default function Player() {
   const { params } = useParams();
   const searchParams = useSearchParams();
@@ -71,7 +73,14 @@ export default function Player() {
   } = usePlayerServers({ defaultServerIndex });
   const fetchServer = servers[serverIndex];
   //MOVIE METADATA
-  const { data: metadata } = useMovieById({ media_type, tmdbId });
+  const {
+    data: metadata,
+    isError: metadataError,
+    isLoading: metadataLoading,
+  } = useMovieById({
+    media_type,
+    tmdbId,
+  });
   const imdbId = metadata?.external_ids?.imdb_id ?? null;
   const title = metadata?.title || metadata?.name || "";
   const date = metadata?.release_date ?? metadata?.first_air_date;
@@ -115,7 +124,7 @@ export default function Player() {
   const subtitleData = source?.subtitles || [];
   const mergeSubtitles = [...subtitleData, ...openSubtitleData];
   const { isVisible, resetTimer, setIsVisible, lockTimer } =
-    useHiddenOverlay(1500000);
+    useHiddenOverlay(3000);
 
   const playerSrc =
     servers[serverIndex].status === "connecting" ||
@@ -245,6 +254,36 @@ export default function Player() {
       id: "off",
     });
   }, [mergeSubtitles.length]);
+
+  if (metadataError) {
+    return (
+      <div className="h-screen flex flex-col justify-center items-center gap-6 bg-background relative overflow-hidden">
+        {/* Ambient glow */}
+        <div className="absolute w-64 h-64 rounded-full bg-blue-600/10 blur-3xl pointer-events-none animate-pulse" />
+
+        {/* Broken film icon */}
+        <div className="relative z-10  text-center px-4 ">
+          <div className="space-y-2">
+            <p className="text-muted-foreground lg:text-2xl md:text-xl text-lg max-[340px]:text-base  -tracking-[0.04em] font-semibold ">
+              No resources found
+            </p>
+            <p className="text-muted-foreground lg:text-base text-sm max-[340px]:text-xs max-w-md ">
+              Nothing to stream here. The resource you're looking for doesn't
+              exist or has been removed.
+            </p>
+          </div>
+
+          <Button
+            variant="outline"
+            onClick={() => router.back()}
+            className="mt-8 max-[340px]:text-xs max-[340px]:px-2 max-[340px]Lpy-1"
+          >
+            <ArrowLeft /> Go back
+          </Button>
+        </div>
+      </div>
+    );
+  }
   return (
     <div
       ref={containerRef}
@@ -317,7 +356,7 @@ export default function Player() {
       ${doubleTapSide === "left" ? "left-0" : "right-0"}`}
           >
             <div className="flex flex-col items-center gap-1 text-white">
-              <span className="text-3xl font-medium">
+              <span className="text-3xl  max-[340px]:text-xs font-medium">
                 {doubleTapSide === "left" ? "−15s" : "+15s"}
               </span>
             </div>

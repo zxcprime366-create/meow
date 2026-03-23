@@ -235,7 +235,7 @@ export default function Settings({
                       </p>
                     </div>
 
-                    <ScrollArea className="lg:max-h-[60vh] max-h-[40vh] lg:pl-2 pl-1 lg:pr-3 pr-1.5">
+                    <ScrollArea className="lg:max-h-[60vh] max-h-[40vh]  max-[340px]:max-h-[70vh] lg:pl-2 pl-1 lg:pr-3 pr-1.5">
                       <div className="space-y-1 pt-1 pb-3">
                         {resolvedGroups.map(({ label, items }, i) => (
                           <div key={label}>
