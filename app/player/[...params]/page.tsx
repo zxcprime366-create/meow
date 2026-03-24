@@ -34,7 +34,7 @@ export default function Player() {
   const domain = searchParams.get("domainAd") || "zxcstream.icu";
   const color = searchParams.get("color") || "fafafa";
   const back = searchParams.get("back") === "true";
-  const auto_play = searchParams.get("autoplay") !== "false";
+  const auto_play = searchParams.get("autoplay") === "true";
 
   const [doubleTapSide, setDoubleTapSide] = useState<"left" | "right" | null>(
     null,
@@ -89,6 +89,7 @@ export default function Player() {
   const title = metadata?.title || metadata?.name || "";
   const date = metadata?.release_date ?? metadata?.first_air_date;
   const year = date ? String(new Date(date).getFullYear()) : "";
+  const genre = metadata?.genres[0]?.name ?? "N/A";
   const totalSeasons = metadata?.number_of_seasons || 0;
   const [cCToggle, setCcToggle] = useState(true);
   const [loaded, setLoaded] = useState(false);
@@ -143,6 +144,7 @@ export default function Player() {
       srcType,
       serverIndex,
       progressKey: makeKey(media_type, tmdbId, season, episode),
+      initialMuted: auto_play && autoplay === "on",
     });
 
   useEffect(() => {
@@ -327,6 +329,7 @@ export default function Player() {
           onCanPlay={handleCanPlay}
           onError={handleServerFail}
           autoPlay={auto_play && autoplay === "on"}
+          muted={auto_play && autoplay === "on"}
           className={cn(
             "absolute inset-0 w-full h-full transition-opacity duration-700 mx-auto brightness-200",
             servers[serverIndex].status === "available"
@@ -457,6 +460,8 @@ export default function Player() {
             media_type={media_type}
             currentTime={state.currentTime}
             skipBy={controls.skipBy}
+            year={year}
+            genre={genre}
             //
             quality={quality}
             audioTracks={audioTracks}

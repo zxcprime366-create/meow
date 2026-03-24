@@ -51,7 +51,7 @@ export default function SubtitleOverlay({
     (state) => state.values["Font color"]?.id ?? "white",
   );
   const bgOpacity = useSettingsStore(
-    (state) => state.values["Background opacity"]?.id ?? "medium",
+    (state) => state.values["Background opacity"]?.id ?? "off",
   );
 
   const offset = parseFloat(syncOffset);

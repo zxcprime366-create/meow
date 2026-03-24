@@ -5,7 +5,6 @@ import { PauseIcon, PlayIcon } from "@/components/icons/play-pause";
 import { VolumeOffIcon, VolumeOnIcon } from "@/components/icons/volume";
 import { Slider } from "@/components/ui/slider";
 import Settings from "@/app/player/[...params]/controls/index";
-import { DownloadIcon } from "@/components/icons/download";
 import {
   AudioTrackTypes,
   QualityLevel,
@@ -15,14 +14,11 @@ import {
 import { MediaOption } from "@/hooks/open-subtitle";
 import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { formatTime } from "@/lib/format-time";
-import { AnimatePresence, motion } from "framer-motion";
+import {  motion } from "framer-motion";
 import Episodes from "../episodes";
 import { useRouter } from "next/navigation";
 import { QualityTrack } from "@/hooks/source";
-import { Cloud, SkipBack } from "lucide-react";
-import { CloudIcon } from "@/components/icons/cloud";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 export interface VideoControlsProps {
   state: VideoPlayerState;
   controls: VideoPlayerControls;
@@ -34,6 +30,8 @@ export interface VideoControlsProps {
   media_type: string;
   currentTime: number;
   skipBy: (skip: number) => void;
+  year: string;
+  genre: string;
   //
   quality: QualityLevel[];
   audioTracks: AudioTrackTypes[];
@@ -74,6 +72,8 @@ export default function MainControls({
   media_type,
   currentTime,
   skipBy,
+  year,
+  genre,
   //
   quality,
   audioTracks,
@@ -164,7 +164,8 @@ export default function MainControls({
             {title}
           </h1>
           <div className="flex gap-3  max-[340px]:gap-1.5  text-muted-foreground lg:mt-3 mt-1.5  max-[340px]:mt-0.5 font-medium lg:text-base text-sm  max-[340px]:text-[0.6rem]">
-            <p>2024</p> |<p>Animation</p>|<p>PG</p>
+            <p>{year}</p> |<p>{genre}</p>|
+            <p className="">{media_type === "tv" ? "TV Show" : "Movie"}</p>
           </div>
         </div>
         <div className="space-y-3  max-[340px]:space-y-1 pointer-events-auto ">

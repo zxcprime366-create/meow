@@ -9,23 +9,24 @@ export const initialServers: ServerTypes[] = [
   },
 
   {
-    name: "Atlas II (NEW)",
+    name: "Atlas II",
     server: "atlas",
     status: "queue",
     desc: "4K Support & Multi Audio",
   },
   {
-    name: "Orion III",
-    server: "orion",
-    status: "queue",
-    desc: "Built-In Subtitle",
-  },
-  {
-    name: "Thanatos IV",
+    name: "Thanatos III",
     server: "thanatos",
     status: "queue",
     desc: " Alternative",
   },
+  {
+    name: "Orion IV",
+    server: "orion",
+    status: "queue",
+    desc: "Built-In Subtitle",
+  },
+
   {
     name: "Daedalus V",
     server: "daedalus",

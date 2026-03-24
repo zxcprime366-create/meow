@@ -32,7 +32,7 @@ const DEFAULT_PARAMS = [
   {
     key: "autoplay",
     label: "autoplay",
-    desc: "Automatically plays the movie.",
+    desc: "Automatically plays the movie but muted.",
     example: "e.g true",
   },
   {

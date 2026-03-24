@@ -62,11 +62,13 @@ export function useVideoPlayer({
   srcType,
   serverIndex,
   progressKey,
+  initialMuted = false,
 }: {
   playerSrc: string | null;
   srcType: string;
   serverIndex: number;
   progressKey: string;
+  initialMuted?: boolean;
 }) {
   const [quality, setQuality] = useState<QualityLevel[]>([]);
   const [audioTracks, setAudioTracks] = useState<AudioTrackTypes[]>([]);
@@ -84,7 +86,7 @@ export function useVideoPlayer({
     duration: 0,
     buffered: 0,
     volume: 1,
-    muted: false,
+    muted: initialMuted,
     fullscreen: false,
     pip: false,
     waiting: false,
@@ -335,6 +337,11 @@ export function useVideoPlayer({
     setState((p) => ({ ...p, canPlay: false, waiting: true }));
   }, [serverIndex]);
 
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = initialMuted;
+  }, []); // runs once on mount
   //////////////////////////////////////////////////
   //SLEEP TIMER
   useEffect(() => {

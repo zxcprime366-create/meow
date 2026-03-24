@@ -64,7 +64,7 @@ export function SubtitleSettingsModal({ onClose }: { onClose: () => void }) {
 
   const fontSize = values["Font size"]?.id ?? "medium";
   const fontColor = values["Font color"]?.id ?? "white";
-  const bgOpacity = values["Background opacity"]?.id ?? "medium";
+  const bgOpacity = values["Background opacity"]?.id ?? "off";
   const syncOffset = parseFloat(values["Sync offset"]?.id ?? "0.0s");
 
   const currentColor =
