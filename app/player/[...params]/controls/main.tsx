@@ -14,7 +14,7 @@ import {
 import { MediaOption } from "@/hooks/open-subtitle";
 import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { formatTime } from "@/lib/format-time";
-import {  motion } from "framer-motion";
+import { motion } from "framer-motion";
 import Episodes from "../episodes";
 import { useRouter } from "next/navigation";
 import { QualityTrack } from "@/hooks/source";
@@ -148,6 +148,16 @@ export default function MainControls({
         {/* <button className="text-white/80 hover:text-white cursor-pointer">
           <CloudIcon className="lg:size-13 md:size-9 size-8  max-[340px]:size-5.5" />
         </button> */}
+        {media_type === "tv" && (
+          <Episodes
+            tmdbId={tmdbId}
+            season={season}
+            episode={episode}
+            lockTimer={lockTimer}
+            resetTimer={resetTimer}
+            totalSeasons={totalSeasons}
+          />
+        )}
       </div>
       <div className="w-full lg:px-6 px-2   max-[340px]:px-1 lg:py-6 py-3  max-[340px]:py-1.5  space-y-3  max-[340px]:space-y-1  ">
         <div className="lg:p-4 p-2  max-[340px]:p-1  pointer-events-none">
@@ -294,16 +304,7 @@ export default function MainControls({
                 lockTimer={lockTimer}
                 source={source}
               />
-              {media_type === "tv" && (
-                <Episodes
-                  tmdbId={tmdbId}
-                  season={season}
-                  episode={episode}
-                  lockTimer={lockTimer}
-                  resetTimer={resetTimer}
-                  totalSeasons={totalSeasons}
-                />
-              )}
+
               <button
                 className="text-white/80 hover:text-white cursor-pointer"
                 onClick={() => setCcToggle((prev) => !prev)}
