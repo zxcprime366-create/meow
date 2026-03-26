@@ -2,6 +2,63 @@ import { fetchWithTimeout } from "@/lib/fetch-timeout";
 import { NextRequest, NextResponse } from "next/server";
 import { validateBackendToken } from "@/lib/validate-token";
 import { isValidReferer } from "@/lib/allowed-referers";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_HOLLY_SUPABASE_URL_HOLLY!,
+  process.env.HOLLY_SUPABASE_SERVICE_ROLE_KEY_HOLLY!,
+);
+
+async function dbGet(
+  tmdbId: string,
+  mediaType: string,
+  season: string | null,
+  episode: string | null,
+) {
+  try {
+    let query = supabase
+      .from("holly_cache")
+      .select("qualities")
+      .eq("tmdb_id", Number(tmdbId))
+      .eq("media_type", mediaType);
+
+    if (season) query = query.eq("season", Number(season));
+    else query = query.is("season", null);
+
+    if (episode) query = query.eq("episode", Number(episode));
+    else query = query.is("episode", null);
+
+    const { data, error } = await query.maybeSingle();
+    if (error || !data) return null;
+    return data.qualities as Array<{ quality: string; embed_url: string }>;
+  } catch {
+    return null;
+  }
+}
+
+async function dbSave(
+  tmdbId: string,
+  mediaType: string,
+  season: string | null,
+  episode: string | null,
+  qualities: Array<{ quality: string; embed_url: string }>,
+) {
+  try {
+    const { error } = await supabase.from("holly_cache").upsert(
+      {
+        tmdb_id: Number(tmdbId),
+        media_type: mediaType,
+        season: season ? Number(season) : null,
+        episode: episode ? Number(episode) : null,
+        qualities,
+      },
+      { onConflict: "tmdb_id,media_type,season,episode" },
+    );
+    if (error) console.warn("[holly dbSave] error:", error);
+  } catch (err: any) {
+    console.warn("[holly dbSave] exception:", err.message);
+  }
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -22,13 +79,13 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // ⏱ expire after 8 seconds
     if (Date.now() - Number(ts) > 8000) {
       return NextResponse.json(
         { success: false, error: "Invalid token" },
         { status: 403 },
       );
     }
+
     if (!validateBackendToken(tmdbId, f_token, ts, token)) {
       return NextResponse.json(
         { success: false, error: "Invalid token" },
@@ -36,7 +93,6 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // block direct /api access
     const referer = req.headers.get("referer") || "";
     if (!isValidReferer(referer)) {
       return NextResponse.json(
@@ -45,47 +101,55 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // ─── STEP 1: Build slug and fetch Holly metadata ───────────────────────────
-    // Slug base: "{title-kebab-case}" e.g. "stranger-things"
-    const baseSlug = title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
+    // ─── STEP 1: Check cache, else fetch Holly metadata ───────────────────────
+    let qualities: Array<{ quality: string; embed_url: string }>;
 
-    // Movies:  "{title-slug}-{year}"         → frankenstein-2025
-    // TV:      "{title-slug}-season-X-episode-Y" (no year, uses /episode/ path)
-    const hollySlug =
-      mediaType === "tv" && season && episode
-        ? `${baseSlug}-season-${season}-episode-${episode}`
-        : `${baseSlug}-${year}`;
+    const cached = await dbGet(tmdbId, mediaType, season, episode);
 
-    const step1Url = `https://still-pond-16b9.orbitprime27.workers.dev/?slug=${encodeURIComponent(hollySlug)}`;
+    if (cached) {
+      qualities = cached;
+    } else {
+      const baseSlug = title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
 
-    const step1Res = await fetchWithTimeout(step1Url, {}, 6000);
-    if (!step1Res.ok) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Holly step 1 failed",
-          status: step1Res.status,
-        },
-        { status: step1Res.status },
+      const hollySlug =
+        mediaType === "tv" && season && episode
+          ? `${baseSlug}-season-${season}-episode-${episode}`
+          : `${baseSlug}-${year}`;
+
+      const step1Url = `https://still-pond-16b9.orbitprime27.workers.dev/?slug=${encodeURIComponent(hollySlug)}`;
+
+      const step1Res = await fetchWithTimeout(step1Url, {}, 6000);
+      if (!step1Res.ok) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Holly step 1 failed",
+            status: step1Res.status,
+          },
+          { status: step1Res.status },
+        );
+      }
+
+      const step1Data = await step1Res.json();
+      qualities = step1Data.qualities ?? [];
+
+      if (!qualities.length) {
+        return NextResponse.json(
+          { success: false, error: "No qualities found from Holly" },
+          { status: 404 },
+        );
+      }
+
+      // fire-and-forget
+      dbSave(tmdbId, mediaType, season, episode, qualities).catch((e: any) =>
+        console.warn("[holly dbSave] failed:", e.message),
       );
     }
 
-    const step1Data = await step1Res.json();
-
-    // Pick best quality embed_url: prefer 1080p, fallback to default
-    const qualities: Array<{ quality: string; embed_url: string }> =
-      step1Data.qualities ?? [];
-
-    if (!qualities.length) {
-      return NextResponse.json(
-        { success: false, error: "No qualities found from Holly" },
-        { status: 404 },
-      );
-    }
-
+    // ─── STEP 2: Pick best quality → resolve embed ────────────────────────────
     const bestQuality =
       qualities.find((q) => q.quality === "1080p") ??
       qualities.find((q) => q.quality === "default") ??
@@ -93,7 +157,6 @@ export async function GET(req: NextRequest) {
 
     const embedUrl = bestQuality.embed_url;
 
-    // ─── STEP 2: Resolve embed URL → sources ───────────────────────────────────
     const step2Url = `https://ancient-wood-1bb5.orbitprime27.workers.dev/?embed_url=${encodeURIComponent(embedUrl)}`;
 
     const step2Res = await fetchWithTimeout(step2Url, {}, 6000);
@@ -119,7 +182,6 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Prefer HLS sources; pick MAIN mp4 as last resort
     const hlsSource =
       sources.find((s) => s.type === "mp4") ??
       sources.find((s) => s.type === "hls" && s.label === "LS-25") ??
@@ -132,12 +194,9 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const rawStreamUrl = hlsSource.file;
+    // ─── STEP 3: Proxy the stream URL ─────────────────────────────────────────
+    const proxiedUrl = `https://rapid-bonus-e527.orbitprime27.workers.dev/?url=${encodeURIComponent(hlsSource.file)}`;
 
-    // ─── STEP 3: Proxy the stream URL ──────────────────────────────────────────
-    const proxiedUrl = `https://rapid-bonus-e527.orbitprime27.workers.dev/?url=${encodeURIComponent(rawStreamUrl)}`;
-
-    // Quick liveness check on the proxied stream
     const proxyCheck = await fetchWithTimeout(
       proxiedUrl,
       { method: "GET", headers: { Range: "bytes=0-1" } },
@@ -153,6 +212,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      c: !!cached,
       links: [
         {
           type: hlsSource.type === "hls" ? "hls" : "mp4",
