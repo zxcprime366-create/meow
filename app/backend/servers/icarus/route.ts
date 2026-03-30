@@ -15,35 +15,35 @@ export async function GET(req: NextRequest) {
     const token = req.nextUrl.searchParams.get("putangnamo")!;
     const f_token = req.nextUrl.searchParams.get("f_token")!;
 
-    if (!tmdbId || !mediaType || !title || !year || !ts || !token) {
+    if (!tmdbId || !mediaType || !title || !year) {
       return NextResponse.json(
         { success: false, error: "need token" },
         { status: 404 },
       );
     }
 
-    if (Date.now() - ts > 8000) {
-      return NextResponse.json(
-        { success: false, error: "Invalid token" },
-        { status: 403 },
-      );
-    }
+    // if (Date.now() - ts > 8000) {
+    //   return NextResponse.json(
+    //     { success: false, error: "Invalid token" },
+    //     { status: 403 },
+    //   );
+    // }
 
-    if (!validateBackendToken(tmdbId, f_token, ts, token)) {
-      return NextResponse.json(
-        { success: false, error: "Invalid token" },
-        { status: 403 },
-      );
-    }
+    // if (!validateBackendToken(tmdbId, f_token, ts, token)) {
+    //   return NextResponse.json(
+    //     { success: false, error: "Invalid token" },
+    //     { status: 403 },
+    //   );
+    // }
 
     // block direct /api access
-    const referer = req.headers.get("referer") || "";
-    if (!isValidReferer(referer)) {
-      return NextResponse.json(
-        { success: false, error: "Forbidden" },
-        { status: 403 },
-      );
-    }
+    // const referer = req.headers.get("referer") || "";
+    // if (!isValidReferer(referer)) {
+    //   return NextResponse.json(
+    //     { success: false, error: "Forbidden" },
+    //     { status: 403 },
+    //   );
+    // }
     // -------- MovieBox Logic --------
     const randomIP =
       africanIPs[Math.floor(Math.random() * africanIPs.length)].ip;
@@ -175,30 +175,13 @@ export async function GET(req: NextRequest) {
     const workingProxy = await getWorkingProxy(sortedDownloads[0].url, proxies);
 
     if (!workingProxy) {
-      const proxyResults = await Promise.all(
-        proxies.map(async (proxy) => {
-          try {
-            const testUrl = `${proxy}?url=${encodeURIComponent(sortedDownloads[0].url)}`;
-            const res = await fetchWithTimeout(
-              testUrl,
-              { method: "HEAD", headers: { Range: "bytes=0-1" } },
-              3000,
-            );
-            return `${proxy} → ${res.status}`;
-          } catch (e: any) {
-            return `${proxy} → ERROR: ${e.message}`;
-          }
-        }),
-      );
+      console.log("No working proxy");
       return NextResponse.json(
-        {
-          success: false,
-          error: "No working proxy available",
-          debug: proxyResults,
-        },
+        { success: false, error: "No working proxy available" },
         { status: 502 },
       );
     }
+
     const links = sortedDownloads.map((d: any) => ({
       resolution: d.resolution,
       format: d.format,
