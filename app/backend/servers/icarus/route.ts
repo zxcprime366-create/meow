@@ -236,7 +236,11 @@ export async function GET(req: NextRequest) {
       "https://still-butterfly-9b3e.zxcprime360.workers.dev/",
     ];
 
-    const workingProxy = await getWorkingProxy(sortedDownloads[0].url, proxies);
+    const shuffledProxies = [...proxies].sort(() => Math.random() - 0.5);
+    const workingProxy = await getWorkingProxy(
+      sortedDownloads[0].url,
+      shuffledProxies,
+    );
     if (!workingProxy) {
       return NextResponse.json(
         { success: false, error: "No working proxy available" },
