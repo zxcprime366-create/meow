@@ -241,8 +241,8 @@ export async function GET(req: NextRequest) {
       8000,
     );
 
-    console.log("detailPath", detailPath);
-    console.log("subjectId", subjectId);
+    // console.log("detailPath", detailPath);
+    // console.log("subjectId", subjectId);
 
     const sourcesJson = await sourcesRes.json();
     const sources = sourcesJson?.data?.data || sourcesJson?.data || sourcesJson;

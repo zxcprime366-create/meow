@@ -178,7 +178,7 @@ export async function GET(req: NextRequest) {
         {},
         8000,
       ).then((r) => r.json());
-      console.log("xxxxxxx", playerData);
+      // console.log("xxxxxxx", playerData);
       return buildResponse(playerData);
     }
 

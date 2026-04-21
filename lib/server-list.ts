@@ -15,35 +15,36 @@ export const initialServers: ServerTypes[] = [
     desc: "4K Support & Multi Audio",
   },
   {
-    name: "Thanatos III",
-    server: "thanatos",
-    status: "queue",
-    desc: " Alternative",
-  },
-  {
     name: "Orion IV",
     server: "orion",
     status: "queue",
     desc: "Built-In Subtitle",
   },
   {
-    name: "Lazarus (NEW)",
-    server: "lazarus",
+    name: "Thanatos III",
+    server: "thanatos",
     status: "queue",
-    desc: "Alternative",
+    desc: " Alternative",
   },
 
-  {
-    name: "Daedalus V",
-    server: "daedalus",
-    status: "queue",
-    desc: "Multi Audio Support",
-  },
+  // {
+  //   name: "Lazarus (NEW)",
+  //   server: "lazarus",
+  //   status: "queue",
+  //   desc: "Alternative",
+  // },
 
-  {
-    name: "Talos VII",
-    server: "talos",
-    status: "queue",
-    desc: "Spanish Audio",
-  },
+  // {
+  //   name: "Daedalus V",
+  //   server: "daedalus",
+  //   status: "queue",
+  //   desc: "Multi Audio Support",
+  // },
+
+  // {
+  //   name: "Talos VII",
+  //   server: "talos",
+  //   status: "queue",
+  //   desc: "Spanish Audio",
+  // },
 ];
