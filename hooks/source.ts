@@ -174,10 +174,6 @@ export function generateFrontendToken(id: string) {
   return { f_token, f_ts };
 }
 
-
-
-
-
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -211,9 +207,10 @@ async function fetchThanatosSource({
     qs.set("seasonId", String(season));
     qs.set("episodeId", String(episode));
   }
-
+  // cdn;
+  // myflixerzupcloud;
   const videasyRes = await axios.get(
-    `https://api.videasy.net/myflixerzupcloud/sources-with-title?${qs}`,
+    `https://api.videasy.net/cdn/sources-with-title?${qs}`,
     {
       headers: {
         "User-Agent":

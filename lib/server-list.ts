@@ -15,16 +15,16 @@ export const initialServers: ServerTypes[] = [
     desc: "4K Support & Multi Audio",
   },
   {
-    name: "Orion IV",
-    server: "orion",
-    status: "queue",
-    desc: "Built-In Subtitle",
-  },
-  {
     name: "Thanatos III",
     server: "thanatos",
     status: "queue",
     desc: " Alternative",
+  },
+  {
+    name: "Orion IV",
+    server: "orion",
+    status: "queue",
+    desc: "Built-In Subtitle",
   },
 
   // {

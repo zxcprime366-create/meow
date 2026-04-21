@@ -24,7 +24,7 @@ export function usePlayerServers({
         }
 
         if (idx === i) {
-          // if (s.status === "cancelled") return { ...s, status: "checking" };
+          if (s.status === "queue") return { ...s, status: "checking" };
           if (s.status === "failed") return { ...s, status: "checking" };
           if (s.status === "available") return { ...s, status: "connecting" };
           // if (s.status === "queue") return { ...s, status: "connecting" };
