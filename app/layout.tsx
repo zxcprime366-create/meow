@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import Provider from "./provider";
 import Script from "next/script";
+import SandboxGuard from "@/components/ui/sandboxGuard";
 
 const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -76,7 +77,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Provider>{children}</Provider>
+          <Provider>
+            <SandboxGuard>{children}</SandboxGuard>
+          </Provider>
         </ThemeProvider>
       </body>
     </html>

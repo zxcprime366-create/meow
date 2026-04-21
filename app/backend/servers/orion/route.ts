@@ -14,6 +14,7 @@ const HOLLY_WORKERS = [
   "zxcprime360",
   "zxcprime361",
   "zxcprime362",
+  "jerometecson21799",
 ];
 
 function randomWorker(): string {
