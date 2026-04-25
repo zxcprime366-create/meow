@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { selectAudioTrack } from "@/lib/selected-audio-track";
 import Hls from "hls.js";
 import { useSettingsStore } from "@/zustand/settings-store";
 import { useVideoProgressStore } from "@/zustand/videoProgressStore";
@@ -63,23 +62,25 @@ export function useVideoPlayer({
   serverIndex,
   progressKey,
   initialMuted = false,
+  enableSaveProgress = true, // ← new
+  enableLoadProgress = true, // ← new
+  load,
 }: {
   playerSrc: string | null;
   srcType: string;
   serverIndex: number;
   progressKey: string;
   initialMuted?: boolean;
+  enableSaveProgress?: boolean; // ← new
+  enableLoadProgress?: boolean; // ← new
+  load?: number;
 }) {
   const [quality, setQuality] = useState<QualityLevel[]>([]);
   const [audioTracks, setAudioTracks] = useState<AudioTrackTypes[]>([]);
-  const [subtitleTracks, setSubtitleTracks] = useState<SubtitleTrackTypes[]>(
-    [],
-  );
+
   const qualityId = useSettingsStore((s) => s.values["Quality"]?.id ?? "auto");
   const audioId = useSettingsStore((s) => s.values["Audio track"]?.id ?? null);
-  // const [selectedQuality, setSelectedQuality] = useState<number>(-1);
-  // const [selectedAudio, setSelectedAudio] = useState<number>(0);
-  const [selectedSubtitle, setSelectedSubtitle] = useState<number>(-1);
+
   const [state, setState] = useState<VideoPlayerState>({
     playing: false,
     currentTime: 0,
@@ -118,7 +119,7 @@ export function useVideoPlayer({
 
   useEffect(() => {
     hasRestoredRef.current = false;
-  }, [playerSrc, progressKey]);
+  }, [playerSrc, progressKey, load]);
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !playerSrc) return;
@@ -145,14 +146,6 @@ export function useVideoPlayer({
           id: "auto",
         });
       });
-      hls.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, (_, data) => {
-        setSubtitleTracks(data.subtitleTracks);
-
-        // console.log(data.subtitleTracks);
-        // subtitles off by default
-        hls.subtitleTrack = -1;
-        hls.subtitleDisplay = false;
-      });
       hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, (_, data) => {
         setAudioTracks(data.audioTracks);
         const first = data.audioTracks[0];
@@ -164,18 +157,8 @@ export function useVideoPlayer({
             id: "0", // index 0
           });
         }
-        // const selectedIndex = selectAudioTrack(data.audioTracks, "en");
-        // if (selectedIndex !== null) {
-        //   setSelectedAudio(selectedIndex);
-        //   hls.audioTrack = selectedIndex;
-        // }
       });
-      // hls.on(Hls.Events.ERROR, (_, data) => {
-      //   if (data.fatal) {
-      //     console.error("HLS error", data);
-      //     video.src = playerSrc; // fallback
-      //   }
-      // });
+
       return () => {
         hls.destroy();
         hlsRef.current = null;
@@ -184,43 +167,20 @@ export function useVideoPlayer({
       video.src = playerSrc;
     }
   }, [playerSrc, srcType]);
-  // useEffect(() => {
-  //   if (hlsRef.current) {
-  //     hlsRef.current.currentLevel = selectedQuality;
-  //   }
-  // }, [selectedQuality]);
+
   useEffect(() => {
     if (!hlsRef.current) return;
     hlsRef.current.currentLevel = qualityId === "auto" ? -1 : Number(qualityId);
   }, [qualityId]);
 
-  // useEffect(() => {
-  //   if (hlsRef.current) {
-  //     hlsRef.current.audioTrack = selectedAudio;
-  //   }
-  // }, [selectedAudio]);
   useEffect(() => {
     if (!hlsRef.current) return;
     hlsRef.current.audioTrack = audioId === null ? 0 : Number(audioId);
   }, [audioId]);
-  useEffect(() => {
-    if (hlsRef.current) {
-      hlsRef.current.subtitleTrack = selectedSubtitle;
-    }
-  }, [selectedSubtitle]);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-
-    // const onTimeUpdate = () => {
-    //   if (isSeekingRef.current) return;
-    //   setState((p) => ({
-    //     ...p,
-    //     currentTime: video.currentTime,
-    //     ended: video.ended,
-    //   }));
-    // };
 
     const onTimeUpdate = () => {
       if (isSeekingRef.current) return;
@@ -231,9 +191,12 @@ export function useVideoPlayer({
       lastSavedTimeRef.current = time;
 
       if (video.duration > 0) {
-        useVideoProgressStore
-          .getState()
-          .saveProgress(progressKey, time, video.duration);
+        if (enableSaveProgress) {
+          // ← guard
+          useVideoProgressStore
+            .getState()
+            .saveProgress(progressKey, time, video.duration);
+        }
 
         window.parent.postMessage(
           {
@@ -245,7 +208,7 @@ export function useVideoPlayer({
               percent: Math.round((time / video.duration) * 100),
             },
           },
-          "*", // or replace "*" with your parent site's origin e.g. "https://yoursite.com"
+          "*",
         );
       }
 
@@ -265,51 +228,59 @@ export function useVideoPlayer({
     const onVolumeChange = () =>
       setState((p) => ({ ...p, volume: video.volume, muted: video.muted }));
     const onWaiting = () => setState((p) => ({ ...p, waiting: true }));
-    // const onPlaying = () =>
-    //   setState((p) => ({ ...p, waiting: false, playing: true }));
+
     const onPlaying = () => {
       window.parent.postMessage({ type: "VIDEO_PLAY" }, "*");
       setState((p) => ({ ...p, waiting: false, playing: true }));
     };
-    // const onPause = () => setState((p) => ({ ...p, playing: false }));
+
     const onPause = () => {
       window.parent.postMessage({ type: "VIDEO_PAUSE" }, "*");
       setState((p) => ({ ...p, playing: false }));
     };
 
-    // const onEnded = () => {
-    //   useVideoProgressStore.getState().clearProgress(progressKey);
-
-    //   setState((p) => ({ ...p, playing: false, ended: true }));
-    // };
     const onEnded = () => {
       window.parent.postMessage(
         { type: "VIDEO_ENDED", payload: { progressKey } },
         "*",
       );
-      useVideoProgressStore.getState().clearProgress(progressKey);
+      if (enableSaveProgress) {
+        // ← guard
+        useVideoProgressStore.getState().clearProgress(progressKey);
+      }
       setState((p) => ({ ...p, playing: false, ended: true }));
     };
     const onPip = () => setState((p) => ({ ...p, pip: true }));
     const onLeavePip = () => setState((p) => ({ ...p, pip: false }));
     const onFullscreenChange = () =>
       setState((p) => ({ ...p, fullscreen: !!document.fullscreenElement }));
+
     const onCanPlay = () => {
       if (!hasRestoredRef.current) {
-        const saved = useVideoProgressStore.getState().getProgress(progressKey);
         const MIN_RESTORE_SECONDS = 5;
 
-        if (saved && saved.currentTime > MIN_RESTORE_SECONDS) {
-          video.currentTime = saved.currentTime;
-          setState((p) => ({ ...p, currentTime: saved.currentTime }));
+        // `load` param takes priority over stored progress
+        if (load !== undefined && load > 0) {
+          video.currentTime = load;
+          setState((p) => ({ ...p, currentTime: load }));
+        } else if (enableLoadProgress) {
+          // ← guard
+          const saved = useVideoProgressStore
+            .getState()
+            .getProgress(progressKey);
+          if (saved && saved.currentTime > MIN_RESTORE_SECONDS) {
+            video.currentTime = saved.currentTime;
+            setState((p) => ({ ...p, currentTime: saved.currentTime }));
+          }
         }
 
         hasRestoredRef.current = true;
       }
-      setState((p) => ({ ...p, waiting: false, canPlay: true })); // UPDATED
+      setState((p) => ({ ...p, waiting: false, canPlay: true }));
     };
+
     const onLoadStart = () =>
-      setState((p) => ({ ...p, waiting: true, canPlay: false })); // UPDATED
+      setState((p) => ({ ...p, waiting: true, canPlay: false }));
     const onSeeking = () => {
       isSeekingRef.current = true;
     };
@@ -373,8 +344,7 @@ export function useVideoPlayer({
     if (!video) return;
     video.muted = initialMuted;
   }, []); // runs once on mount
-  //////////////////////////////////////////////////
-  //SLEEP TIMER
+
   useEffect(() => {
     if (sleepTimer === "off") return;
 
@@ -399,8 +369,6 @@ export function useVideoPlayer({
     if (!video) return;
     video.loop = loop === "on";
   }, [loop]);
-
-  // apply boost when store value changes
 
   const seek = useCallback((time: number) => {
     const v = videoRef.current;

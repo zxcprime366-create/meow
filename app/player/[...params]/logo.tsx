@@ -1,4 +1,4 @@
-import { MovieTypes } from "@/types/types";
+
 import { motion } from "framer-motion";
 
 export default function LoadingMetadata({ logo }: { logo: string }) {

@@ -46,9 +46,12 @@ export default function Player() {
   const [showServer, setShowServer] = useState(false);
   const defaultServerIndex = Number(searchParams.get("server")) || 0;
   const domain = searchParams.get("domainAd") || "zxcstream.icu";
-  const color = searchParams.get("color") || "FF0000";
+  const color = searchParams.get("color") || "dc2626";
   const back = searchParams.get("back") === "true";
   const auto_play = searchParams.get("autoplay") === "true";
+  const enableSaveProgress = searchParams.get("save_progress") !== "false"; // default true
+  const enableLoadProgress = searchParams.get("load_progress") !== "false"; // default true
+  const load = Number(searchParams.get("load")) || undefined; // default undefined
 
   // ─── Local State ─────────────────────────────────────────────────────────────
   const isMobile = useIsMobile();
@@ -191,6 +194,9 @@ export default function Player() {
       serverIndex,
       progressKey: makeKey(media_type, tmdbId, season, episode),
       initialMuted: auto_play && autoplay === "on",
+      enableSaveProgress,
+      enableLoadProgress,
+      load,
     });
 
   const { isVisible, resetTimer, setIsVisible, lockTimer } =
